@@ -6,7 +6,6 @@ from tkinter import filedialog
 from tkinter import ttk
 from tkinter import messagebox
 from datetime import datetime
-from ttkthemes import ThemedStyle
 
 Copyright = "Bernard Realino"  # add name of copyright holder
 Artist = "Bernard Realino"  # add name of artist
@@ -39,7 +38,7 @@ def get_folder_size(path):
             total_size += os.path.getsize(file_path)
     return total_size / (1024 * 1024)  # Convert to Megabytes
 
-def compress_image(imagefiles, progress_bar, log_text, original_folder_size, compressed_folder_size, storage_saved_label, file_count_label):
+def compress_image(imagefiles, progress_bar, log_text, original_folder_size, compressed_folder_size, storage_saved_label, file_count_label, quality):
     file_count = len(imagefiles)
     count = 0
     storage_saved = 0  # Initialize storage saved
@@ -115,57 +114,58 @@ def compress_images():
         messagebox.showerror("Error", "No image files found in the selected directory.")
         return
 
+    quality_value = quality_scale.get()  # Get the quality from the scale
+
     compressed_folder_size.set(0)
     progress_bar["value"] = 0
     log_text.delete(1.0, tk.END)
     log_text.insert(tk.END, f"Compression started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
     storage_saved_label.config(text="Storage Saved: -")
     file_count_label.config(text="File 0/0")  # Initialize file count label
-    compress_image(image_files, progress_bar, log_text, original_size, compressed_folder_size, storage_saved_label, file_count_label)
+    compress_image(image_files, progress_bar, log_text, original_size, compressed_folder_size, storage_saved_label, file_count_label, quality_value)
 
 # Create the main application window
 app = tk.Tk()
 app.title("Image Compression App")
 
-# Apply a modern theme
-style = ThemedStyle(app)
-style.set_theme("arc")  # Change "arc" to your preferred theme
-
-# Customize the background color (here it's set to light gray)
-app.configure(bg="#f2f2f2")
-
 # Create and configure UI elements using the grid layout
 # Row 0: Directory selection
-directory_label = ttk.Label(app, text="Select a directory:")
+directory_label = tk.Label(app, text="Select a directory:")
 directory_label.grid(row=0, column=0, padx=10, pady=10, sticky='w')
-directory_entry = ttk.Entry(app)
+directory_entry = tk.Entry(app)
 directory_entry.grid(row=0, column=1, padx=10, pady=10, columnspan=3, sticky='ew')
-browse_button = ttk.Button(app, text="Browse", command=browse_directory)
+browse_button = tk.Button(app, text="Browse", command=browse_directory)
 browse_button.grid(row=0, column=4, padx=10, pady=10)
-# Row 1: Compress button and folder size labels
-compress_button = ttk.Button(app, text="Compress Images", command=compress_images)
-compress_button.grid(row=1, column=0, padx=10, pady=10, sticky='w')
-original_folder_size_label = ttk.Label(app, text="Original Folder Size (MB):")
-original_folder_size_label.grid(row=1, column=1, padx=10, pady=10)
-original_size_label = ttk.Label(app, text="0.00 MB")
-original_size_label.grid(row=1, column=2, padx=10, pady=10, sticky='w')
-compressed_folder_size_label = ttk.Label(app, text="Compressed Folder Size:")
-compressed_folder_size_label.grid(row=1, column=3, padx=10, pady=10)
+# Row 1: Compression quality scale
+quality_label = tk.Label(app, text="Compression Quality:")
+quality_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
+quality_scale = tk.Scale(app, from_=0, to=100, orient="horizontal")
+quality_scale.set(quality)  # Set the default quality
+quality_scale.grid(row=1, column=1, columnspan=3, padx=10, pady=10, sticky='ew')
+# Row 2: Compress button and folder size labels
+compress_button = tk.Button(app, text="Compress Images", command=compress_images)
+compress_button.grid(row=2, column=0, padx=10, pady=10, sticky='w')
+original_folder_size_label = tk.Label(app, text="Original Folder Size (MB):")
+original_folder_size_label.grid(row=2, column=1, padx=10, pady=10)
+original_size_label = tk.Label(app, text="0.00 MB")
+original_size_label.grid(row=2, column=2, padx=10, pady=10, sticky='w')
+compressed_folder_size_label = tk.Label(app, text="Compressed Folder Size:")
+compressed_folder_size_label.grid(row=2, column=3, padx=10, pady=10)
 compressed_folder_size = tk.StringVar()
-compressed_size_label = ttk.Label(app, textvariable=compressed_folder_size)
-compressed_size_label.grid(row=1, column=4, padx=10, pady=10, sticky='w')
-# Row 2: File Count Label and Progress Bar
-file_count_label = ttk.Label(app, text="File 0/0")  # Define the file_count_label
-file_count_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')  # Position file_count_label
+compressed_size_label = tk.Label(app, textvariable=compressed_folder_size)
+compressed_size_label.grid(row=2, column=4, padx=10, pady=10, sticky='w')
+# Row 3: File Count Label and Progress Bar
+file_count_label = tk.Label(app, text="File 0/0")  # Define the file_count_label
+file_count_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')  # Position file_count_label
 progress_bar = ttk.Progressbar(app, length=600, mode="determinate")
-progress_bar.grid(row=2, column=1, columnspan=5, padx=10, pady=10, sticky='w')
-# Row 3: Log
-log_label = ttk.Label(app, text="Log:")
-log_label.grid(row=3, column=0, padx=10, pady=10)
+progress_bar.grid(row=3, column=1, columnspan=4, padx=10, pady=10, sticky='w')
+# Row 4: Log
+log_label = tk.Label(app, text="Log:")
+log_label.grid(row=4, column=0, padx=10, pady=10)
 log_text = tk.Text(app, wrap=tk.WORD, height=10, width=80)
-log_text.grid(row=3, column=1, columnspan=6, padx=10, pady=10)
-# Row 4: Storage saved label
-storage_saved_label = ttk.Label(app, text="Storage Saved: -")
-storage_saved_label.grid(row=4, column=0, columnspan=6, padx=10, pady=10)
+log_text.grid(row=4, column=1, columnspan=5, padx=10, pady=10)
+# Row 5: Storage saved label
+storage_saved_label = tk.Label(app, text="Storage Saved: -")
+storage_saved_label.grid(row=5, column=0, columnspan=5, padx=10, pady=10)
 # Start the application
 app.mainloop()
