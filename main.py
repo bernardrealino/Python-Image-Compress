@@ -131,17 +131,20 @@ app.title("Image Compression App")
 style = ThemedStyle(app)
 style.set_theme("arc")  # Change "arc" to your preferred theme
 
+# Customize the background color (here it's set to light gray)
+app.configure(bg="#f2f2f2")
+
 # Create and configure UI elements using the grid layout
 # Row 0: Directory selection
 directory_label = ttk.Label(app, text="Select a directory:")
 directory_label.grid(row=0, column=0, padx=10, pady=10, sticky='w')
-directory_entry = tk.Entry(app)
+directory_entry = ttk.Entry(app)
 directory_entry.grid(row=0, column=1, padx=10, pady=10, columnspan=3, sticky='ew')
 browse_button = ttk.Button(app, text="Browse", command=browse_directory)
 browse_button.grid(row=0, column=4, padx=10, pady=10)
 # Row 1: Compress button and folder size labels
 compress_button = ttk.Button(app, text="Compress Images", command=compress_images)
-compress_button.grid(row=1, column=0, padx=10, pady=10, columnspan=2, sticky='w')
+compress_button.grid(row=1, column=0, padx=10, pady=10, sticky='w')
 original_folder_size_label = ttk.Label(app, text="Original Folder Size (MB):")
 original_folder_size_label.grid(row=1, column=1, padx=10, pady=10)
 original_size_label = ttk.Label(app, text="0.00 MB")
@@ -155,15 +158,14 @@ compressed_size_label.grid(row=1, column=4, padx=10, pady=10, sticky='w')
 file_count_label = ttk.Label(app, text="File 0/0")  # Define the file_count_label
 file_count_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')  # Position file_count_label
 progress_bar = ttk.Progressbar(app, length=600, mode="determinate")
-progress_bar.grid(row=2, column=1, columnspan=4, padx=10, pady=10, sticky='w')
+progress_bar.grid(row=2, column=1, columnspan=5, padx=10, pady=10, sticky='w')
 # Row 3: Log
 log_label = ttk.Label(app, text="Log:")
 log_label.grid(row=3, column=0, padx=10, pady=10)
 log_text = tk.Text(app, wrap=tk.WORD, height=10, width=80)
-log_text.grid(row=3, column=1, columnspan=4, padx=10, pady=10)
+log_text.grid(row=3, column=1, columnspan=6, padx=10, pady=10)
 # Row 4: Storage saved label
 storage_saved_label = ttk.Label(app, text="Storage Saved: -")
-storage_saved_label.grid(row=4, column=0, columnspan=4, padx=10, pady=10)
-
+storage_saved_label.grid(row=4, column=0, columnspan=6, padx=10, pady=10)
 # Start the application
 app.mainloop()
