@@ -1,16 +1,14 @@
 # Python-Image-Compress
-
-## 
-I'm a photographer that takes a lot of photos and taking so much space in our storage, sometimes we don't want to delete
+I'm a photographer that takes a lot of photos and taking so much space in my storage, sometimes we don't want to delete
 the photos we've taken. So I create this program that compress photos from selected folder.
 
 This application is pretty simple by selecting folder that contain photos,
-select the quality. 
+select the quality, and the program will do the rest
 
 ## Description
 
 This program compress images from a selected folder.
-Suitable for photographer who don't want to delete their photo albums.
+Suitable for photographer who don't want to delete their photo albums, but also want to save storage spaces.
 
 ## Screenshots
 
