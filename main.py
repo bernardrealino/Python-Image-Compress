@@ -147,22 +147,22 @@ directory_entry.grid(row=0, column=1, padx=10, pady=10, columnspan=3, sticky='ew
 browse_button = ttk.Button(app, text="Browse", command=browse_directory)
 browse_button.grid(row=0, column=4, padx=10, pady=10)
 # Row 1: Compression quality scale and label
-quality_label = ttk.Label(app, text="Compression Quality:")
+quality_label = tk.Label(app, text="Compression Quality:")
 quality_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
-quality_scale = ttk.Scale(app, from_=0, to=100, orient="horizontal")
+quality_scale = tk.Scale(app, from_=0, to=100, orient="horizontal")
 quality_scale.set(quality)  # Set the default quality
 quality_scale.grid(row=1, column=1, columnspan=2, padx=10, pady=10, sticky='ew')
 
-def update_quality_label(value):
-    quality_number_label.config(text=f"Quality: {int(value)}")
+# def update_quality_label(value):
+#     quality_number_label.config(text=f"Quality: {int(value)}")
     
-quality_scale.bind("<Motion>", lambda event: update_quality_label(quality_scale.get()))
-quality_scale.bind("<ButtonRelease-1>", lambda event: update_quality_label(quality_scale.get()))
+# quality_scale.bind("<Motion>", lambda event: update_quality_label(quality_scale.get()))
+# quality_scale.bind("<ButtonRelease-1>", lambda event: update_quality_label(quality_scale.get()))
 
 
 # Add a label to display the compression quality number
-quality_number_label = ttk.Label(app, text=f"Quality: {quality}")
-quality_number_label.grid(row=1, column=3, padx=10, pady=10, sticky='w')
+# quality_number_label = ttk.Label(app, text=f"Quality: {quality}")
+# quality_number_label.grid(row=1, column=3, padx=10, pady=10, sticky='w')
 
 # Row 2: Compress button and folder size labels
 compress_button = ttk.Button(app, text="Compress Images", command=compress_images)
