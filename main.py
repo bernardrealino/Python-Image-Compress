@@ -1,3 +1,4 @@
+import shutil
 import time
 import piexif
 import os
@@ -75,6 +76,35 @@ def compress_image(imagefiles, quality):
     
     return log_messages, storage_saved
 
+def organize_by_creation_date(directory):
+    # Ensure the directory exists
+    if not os.path.exists(directory):
+        print(f"Directory {directory} does not exist.")
+        return
+    
+    # Iterate through all files in the directory
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+
+        # Skip directories
+        if os.path.isdir(file_path):
+            continue
+        
+        # Get the creation time and format it as YYYY-MM-DD
+        creation_time = os.path.getctime(file_path)
+        creation_date = datetime.fromtimestamp(creation_time).strftime('%Y_%m_%d')
+
+        # Create a new folder with the creation date as the name if it doesn't exist
+        new_folder_path = os.path.join(directory, creation_date)
+        if not os.path.exists(new_folder_path):
+            os.makedirs(new_folder_path)
+        
+        # Move the file into the new folder
+        shutil.move(file_path, os.path.join(new_folder_path, filename))
+        st.write(f"Created {creation_date}")
+
+    st.success(f"Files have been organized by creation date in {directory}.")
+
 # Streamlit App
 st.title("Image Compression App")
 st.text("by Bernard Realino")
@@ -85,24 +115,34 @@ folder_path = st.text_input("Enter the directory path:")
 # Compression Quality Selection
 quality = st.slider("Compression Quality", min_value=0, max_value=100, value=70)
 
-# Compress Images
-if st.button("Compress Images"):
-    if not folder_path:
-        st.error("Please select a directory.")
-    else:
-        original_size = get_folder_size(folder_path)
-        image_files = get_all_images(folder_path)
-        st.write(f"Original Folder Size: {original_size:.2f} MB")
-        
-        if not image_files:
-            st.error("No image files found in the selected directory.")
+col1, col2 = st.columns(2)
+
+with col1:
+    # Compress Images
+    if st.button("Compress Images"):
+        if not folder_path:
+            st.error("Please select a directory.")
         else:
-            st.text(f"Compression started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            log_messages, storage_saved = compress_image(image_files, quality)
-
-            compressed_size = get_folder_size(folder_path)
-
-            st.success("Image compression completed.")
+            original_size = get_folder_size(folder_path)
+            image_files = get_all_images(folder_path)
             st.write(f"Original Folder Size: {original_size:.2f} MB")
-            st.write(f"Compressed Folder Size: {compressed_size:.2f} MB")
-            st.write(f"Storage Saved: {storage_saved:.2f} MB")
+            
+            if not image_files:
+                st.error("No image files found in the selected directory.")
+            else:
+                st.text(f"Compression started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                log_messages, storage_saved = compress_image(image_files, quality)
+
+                compressed_size = get_folder_size(folder_path)
+
+                st.success("Image compression completed.")
+                st.write(f"Original Folder Size: {original_size:.2f} MB")
+                st.write(f"Compressed Folder Size: {compressed_size:.2f} MB")
+                st.write(f"Storage Saved: {storage_saved:.2f} MB")
+
+with col2:
+    if st.button("Organize Folder"):
+        if not folder_path:
+            st.error("Please select a directory")
+        else:
+            organize_by_creation_date(folder_path)
