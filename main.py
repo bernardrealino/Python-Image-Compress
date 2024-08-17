@@ -1,18 +1,14 @@
 import piexif
 import os
 from PIL import Image
-import tkinter as tk
-from tkinter import filedialog
-from tkinter import ttk
-from tkinter import messagebox
+import streamlit as st
 from datetime import datetime
-from ttkthemes import ThemedStyle
 
+# Constants
+Copyright = "Bernard Realino"  # Add name of copyright holder
+Artist = "Bernard Realino"  # Add name of artist
 
-Copyright = "Bernard Realino"  # add name of copyright holder
-Artist = "Bernard Realino"  # add name of artist
-quality = 70
-
+# Helper Functions
 def get_all_images(root):
     valid_format = ['JPG', 'JPEG']
     response = []
@@ -24,12 +20,9 @@ def get_all_images(root):
     return response
 
 def modify_exif(exif_dict):
-    global Copyright, Artist
-
     if exif_dict != 0:
         exif_dict['0th'][piexif.ImageIFD.Copyright] = Copyright
         exif_dict['0th'][piexif.ImageIFD.Artist] = Artist
-
     return exif_dict
 
 def get_folder_size(path):
@@ -40,12 +33,12 @@ def get_folder_size(path):
             total_size += os.path.getsize(file_path)
     return total_size / (1024 * 1024)  # Convert to Megabytes
 
-def compress_image(imagefiles, progress_bar, log_text, original_folder_size, compressed_folder_size, storage_saved_label, file_count_label, quality):
-    file_count = len(imagefiles)
-    count = 0
-    storage_saved = 0  # Initialize storage saved
-    for image_path in imagefiles:
-        log_message = ""  # Initialize log_message
+def compress_image(imagefiles, quality):
+    log_messages = []
+    storage_saved = 0
+    total_files = len(imagefiles)
+
+    for count, image_path in enumerate(imagefiles, start=1):
         try:
             original_file_size = os.path.getsize(image_path) / (1024 * 1024)  # Convert to Megabytes
             im = Image.open(image_path)
@@ -64,130 +57,45 @@ def compress_image(imagefiles, progress_bar, log_text, original_folder_size, com
             storage_saved += original_file_size - compressed_file_size  # Calculate storage saved
 
             file_name = os.path.basename(image_path)
-            log_message = f"Processed: {file_name}\n"
-            log_message += f"\tOriginal Size: {original_file_size:.2f} MB\n"
-            log_message += f"\tCompressed Size: {compressed_file_size:.2f} MB\n"
+            log_messages.append(f"Processed: {file_name} (Original: {original_file_size:.2f} MB, Compressed: {compressed_file_size:.2f} MB)")
         except IOError:
             file_name = os.path.basename(image_path)
-            log_message = f"Error processing: {file_name}\n"
-        finally:
-            count += 1
-            progress = (count / file_count) * 100
-            progress_bar["value"] = progress
-            file_count_label.config(text=f"File {count}/{file_count}")  # Update current file number
-            app.update_idletasks()
-            log_text.insert(tk.END, log_message)
-            log_text.see(tk.END)
+            log_messages.append(f"Error processing: {file_name}")
 
-    log_text.insert(tk.END, "Image compression completed.\n")
-    log_text.see(tk.END)
-
-    # Calculate compressed folder size in Megabytes
-    compressed_size = get_folder_size(directory_entry.get())
-    compressed_folder_size.set(f"{compressed_size:.2f} MB")  # Shorter compressed folder size
-
-    # Calculate and display storage saved
-    storage_saved_label.config(text=f"Storage Saved: {storage_saved:.2f} MB")
-
-def browse_directory():
-    folder_path = filedialog.askdirectory()
-    directory_entry.delete(0, tk.END)
-    directory_entry.insert(0, folder_path)
-
-    # Update the original folder size immediately
-    original_size = get_folder_size(folder_path)
-    original_size_label.config(text=f"{original_size:.2f} MB")
-
-    # Update the file count label
-    image_files = get_all_images(folder_path)
-    file_count_label.config(text=f"File Count: {len(image_files)}")  # Define the file_count_label
-
-def compress_images():
-    folder_path = directory_entry.get()
-    if not folder_path:
-        messagebox.showerror("Error", "Please select a directory.")
-        return
-
-    original_size = get_folder_size(folder_path)
-
-    image_files = get_all_images(folder_path)
-
-    if not image_files:
-        messagebox.showerror("Error", "No image files found in the selected directory.")
-        return
-
-    quality_value = quality_scale.get()  # Get the quality from the scale
-
-    compressed_folder_size.set(0)
-    progress_bar["value"] = 0
-    log_text.delete(1.0, tk.END)
-    log_text.insert(tk.END, f"Compression started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-    storage_saved_label.config(text="Storage Saved: -")
-    file_count_label.config(text="File 0/0")  # Initialize file count label
-    compress_image(image_files, progress_bar, log_text, original_size, compressed_folder_size, storage_saved_label, file_count_label, quality_value)
-
-
-# Create the main application window
-app = tk.Tk()
-app.title("Image Compression App")
-
-# Apply a modern theme
-style = ThemedStyle(app)
-style.set_theme("arc")  # Change "arc" to your preferred theme
-
-# Customize the background color (here it's set to light gray)
-app.configure(bg="#f2f2f2")
-
-# Create and configure UI elements using the grid layout
-# Row 0: Directory selection
-directory_label = ttk.Label(app, text="Select a directory:")
-directory_label.grid(row=0, column=0, padx=10, pady=10, sticky='w')
-directory_entry = ttk.Entry(app)
-directory_entry.grid(row=0, column=1, padx=10, pady=10, columnspan=3, sticky='ew')
-browse_button = ttk.Button(app, text="Browse", command=browse_directory)
-browse_button.grid(row=0, column=4, padx=10, pady=10)
-# Row 1: Compression quality scale and label
-quality_label = tk.Label(app, text="Compression Quality:")
-quality_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
-quality_scale = tk.Scale(app, from_=0, to=100, orient="horizontal")
-quality_scale.set(quality)  # Set the default quality
-quality_scale.grid(row=1, column=1, columnspan=2, padx=10, pady=10, sticky='ew')
-
-# def update_quality_label(value):
-#     quality_number_label.config(text=f"Quality: {int(value)}")
+        # Progress update
+        st.progress(count / total_files)
     
-# quality_scale.bind("<Motion>", lambda event: update_quality_label(quality_scale.get()))
-# quality_scale.bind("<ButtonRelease-1>", lambda event: update_quality_label(quality_scale.get()))
+    return log_messages, storage_saved
 
+# Streamlit App
+st.title("Image Compression App")
 
-# Add a label to display the compression quality number
-# quality_number_label = ttk.Label(app, text=f"Quality: {quality}")
-# quality_number_label.grid(row=1, column=3, padx=10, pady=10, sticky='w')
+# Directory Selection
+folder_path = st.text_input("Enter the directory path:")
+if st.button("Browse"):
+    folder_path = st.text_input("Enter the directory path:", folder_path)
 
-# Row 2: Compress button and folder size labels
-compress_button = ttk.Button(app, text="Compress Images", command=compress_images)
-compress_button.grid(row=2, column=0, padx=10, pady=10, sticky='w')
-original_folder_size_label = ttk.Label(app, text="Original Folder Size (MB):")
-original_folder_size_label.grid(row=2, column=1, padx=10, pady=10)
-original_size_label = ttk.Label(app, text="0.00 MB")
-original_size_label.grid(row=2, column=2, padx=10, pady=10, sticky='w')
-compressed_folder_size_label = ttk.Label(app, text="Compressed Folder Size:")
-compressed_folder_size_label.grid(row=2, column=3, padx=10, pady=10)
-compressed_folder_size = tk.StringVar()
-compressed_size_label = ttk.Label(app, textvariable=compressed_folder_size)
-compressed_size_label.grid(row=2, column=4, padx=10, pady=10, sticky='w')
-# Row 3: File Count Label and Progress Bar
-file_count_label = ttk.Label(app, text="File 0/0")  # Define the file_count_label
-file_count_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')  # Position file_count_label
-progress_bar = ttk.Progressbar(app, length=600, mode="determinate")
-progress_bar.grid(row=3, column=1, columnspan=4, padx=10, pady=10, sticky='w')
-# Row 4: Log
-log_label = ttk.Label(app, text="Log:")
-log_label.grid(row=4, column=0, padx=10, pady=10)
-log_text = tk.Text(app, wrap=tk.WORD, height=10, width=80)
-log_text.grid(row=4, column=1, columnspan=5, padx=10, pady=10)
-# Row 5: Storage saved label
-storage_saved_label = ttk.Label(app, text="Storage Saved: -")
-storage_saved_label.grid(row=5, column=0, columnspan=5, padx=10, pady=10)
-# Start the application
-app.mainloop()
+# Compression Quality Selection
+quality = st.slider("Compression Quality", min_value=0, max_value=100, value=70)
+
+# Compress Images
+if st.button("Compress Images"):
+    if not folder_path:
+        st.error("Please select a directory.")
+    else:
+        original_size = get_folder_size(folder_path)
+        image_files = get_all_images(folder_path)
+        
+        if not image_files:
+            st.error("No image files found in the selected directory.")
+        else:
+            st.text(f"Compression started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            log_messages, storage_saved = compress_image(image_files, quality)
+
+            compressed_size = get_folder_size(folder_path)
+
+            st.success("Image compression completed.")
+            st.write(f"Original Folder Size: {original_size:.2f} MB")
+            st.write(f"Compressed Folder Size: {compressed_size:.2f} MB")
+            st.write(f"Storage Saved: {storage_saved:.2f} MB")
+            st.text_area("Log", value="\n".join(log_messages), height=200)
