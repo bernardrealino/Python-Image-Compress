@@ -1,8 +1,11 @@
+import time
 import piexif
 import os
 from PIL import Image
 import streamlit as st
 from datetime import datetime
+import tkinter as tk
+from tkinter import filedialog
 
 # Constants
 Copyright = "Bernard Realino"  # Add name of copyright holder
@@ -37,7 +40,7 @@ def compress_image(imagefiles, quality):
     log_messages = []
     storage_saved = 0
     total_files = len(imagefiles)
-
+    st.write(f"Total files: {total_files}")
     for count, image_path in enumerate(imagefiles, start=1):
         try:
             original_file_size = os.path.getsize(image_path) / (1024 * 1024)  # Convert to Megabytes
@@ -63,17 +66,21 @@ def compress_image(imagefiles, quality):
             log_messages.append(f"Error processing: {file_name}")
 
         # Progress update
-        st.progress(count / total_files)
+        fname, tcount = st.columns(2)
+        with fname:
+            st.text(file_name)
+        with tcount:
+            st.text(f"{str(count)}/{str(total_files)}")
+        # st.progress(count / total_files)
     
     return log_messages, storage_saved
 
 # Streamlit App
 st.title("Image Compression App")
+st.text("by Bernard Realino")
 
 # Directory Selection
 folder_path = st.text_input("Enter the directory path:")
-if st.button("Browse"):
-    folder_path = st.text_input("Enter the directory path:", folder_path)
 
 # Compression Quality Selection
 quality = st.slider("Compression Quality", min_value=0, max_value=100, value=70)
@@ -85,6 +92,7 @@ if st.button("Compress Images"):
     else:
         original_size = get_folder_size(folder_path)
         image_files = get_all_images(folder_path)
+        st.write(f"Original Folder Size: {original_size:.2f} MB")
         
         if not image_files:
             st.error("No image files found in the selected directory.")
@@ -98,4 +106,3 @@ if st.button("Compress Images"):
             st.write(f"Original Folder Size: {original_size:.2f} MB")
             st.write(f"Compressed Folder Size: {compressed_size:.2f} MB")
             st.write(f"Storage Saved: {storage_saved:.2f} MB")
-            st.text_area("Log", value="\n".join(log_messages), height=200)
