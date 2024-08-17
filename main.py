@@ -106,7 +106,7 @@ def organize_by_creation_date(directory):
     st.success(f"Files have been organized by creation date in {directory}.")
 
 # Streamlit App
-st.title("Image Compression App")
+st.title("Photo Manager")
 st.text("by Bernard Realino")
 
 # Directory Selection
