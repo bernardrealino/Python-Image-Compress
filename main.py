@@ -97,7 +97,7 @@ def organize_by_creation_date_and_type(directory):
         
         # Get the creation time and format it as YYYY-MM-DD
         creation_time = os.path.getctime(file_path)
-        creation_date = datetime.fromtimestamp(creation_time).strftime('%Y-%m-%d')
+        creation_date = datetime.fromtimestamp(creation_time).strftime('%Y_%m_%d')
 
         # Determine the file type
         file_ext = os.path.splitext(filename)[1].lower()
