@@ -76,12 +76,17 @@ def compress_image(imagefiles, quality):
     
     return log_messages, storage_saved
 
-def organize_by_creation_date(directory):
+def organize_by_creation_date_and_type(directory):
     # Ensure the directory exists
     if not os.path.exists(directory):
         print(f"Directory {directory} does not exist.")
         return
     
+    # Define photo and video file extensions, including RAW formats
+    photo_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff',
+                        '.cr2', '.cr3', '.nef', '.arw', '.dng', '.orf', '.sr2', '.raf', '.rw2'}
+    video_extensions = {'.mp4', '.mov', '.avi', '.mkv', '.flv', '.wmv', '.webm'}
+
     # Iterate through all files in the directory
     for filename in os.listdir(directory):
         file_path = os.path.join(directory, filename)
@@ -92,16 +97,25 @@ def organize_by_creation_date(directory):
         
         # Get the creation time and format it as YYYY-MM-DD
         creation_time = os.path.getctime(file_path)
-        creation_date = datetime.fromtimestamp(creation_time).strftime('%Y_%m_%d')
+        creation_date = datetime.fromtimestamp(creation_time).strftime('%Y-%m-%d')
+
+        # Determine the file type
+        file_ext = os.path.splitext(filename)[1].lower()
+
+        if file_ext in photo_extensions:
+            subfolder = 'Photos'
+        elif file_ext in video_extensions:
+            subfolder = 'Videos'
+        else:
+            continue  # Skip files that are neither photos nor videos
 
         # Create a new folder with the creation date as the name if it doesn't exist
-        new_folder_path = os.path.join(directory, creation_date)
+        new_folder_path = os.path.join(directory, creation_date, subfolder)
         if not os.path.exists(new_folder_path):
             os.makedirs(new_folder_path)
         
         # Move the file into the new folder
         shutil.move(file_path, os.path.join(new_folder_path, filename))
-        st.write(f"Created {creation_date}")
 
     st.success(f"Files have been organized by creation date in {directory}.")
 
@@ -145,4 +159,4 @@ with col2:
         if not folder_path:
             st.error("Please select a directory")
         else:
-            organize_by_creation_date(folder_path)
+            organize_by_creation_date_and_type(folder_path)
