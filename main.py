@@ -119,19 +119,14 @@ def organize_by_creation_date_and_type(directory):
 
     st.success(f"Files have been organized by creation date in {directory}.")
 
-# Streamlit App
 st.title("Photo Manager")
 st.text("by Bernard Realino")
 
 # Directory Selection
 folder_path = st.text_input("Enter the directory path:")
-
-# Compression Quality Selection
-quality = st.slider("Compression Quality", min_value=0, max_value=100, value=70)
-
-col1, col2 = st.columns(2)
-
-with col1:
+image_compress, image_organizer = st.columns(2)
+with image_compress:
+    quality = st.slider("Compression Quality", min_value=0, max_value=100, value=70)
     # Compress Images
     if st.button("Compress Images"):
         if not folder_path:
@@ -154,7 +149,7 @@ with col1:
                 st.write(f"Compressed Folder Size: {compressed_size:.2f} MB")
                 st.write(f"Storage Saved: {storage_saved:.2f} MB")
 
-with col2:
+with image_organizer:
     if st.button("Organize Folder"):
         if not folder_path:
             st.error("Please select a directory")
