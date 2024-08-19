@@ -1,12 +1,9 @@
 import shutil
-import time
 import piexif
 import os
 from PIL import Image
 import streamlit as st
 from datetime import datetime
-import tkinter as tk
-from tkinter import filedialog
 
 # Constants
 Copyright = "Bernard Realino"  # Add name of copyright holder
