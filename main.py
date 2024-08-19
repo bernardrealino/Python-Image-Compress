@@ -123,7 +123,7 @@ st.text("by Bernard Realino")
 folder_path = st.text_input("Enter the directory path:")
 image_compress, image_organizer = st.columns(2)
 with image_compress:
-    quality = st.slider("Compression Quality", min_value=0, max_value=100, value=70)
+    quality = st.slider("Compression Quality", min_value=0, max_value=100, value=30)
     # Compress Images
     if st.button("Compress Images"):
         if not folder_path:
