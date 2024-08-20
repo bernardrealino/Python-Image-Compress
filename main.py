@@ -84,7 +84,7 @@ def organize_by_creation_date_and_type(directory):
     
     # Define photo and video file extensions, including RAW formats
     photo_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff',
-                        '.cr2', '.cr3', '.nef', '.arw', '.dng', '.orf', '.sr2', '.raf', '.rw2'}
+                        '.cr2', '.cr3', '.nef', '.arw', '.dng', '.orf', '.sr2', '.raf', '.rw2', '.heic'}
     video_extensions = {'.mp4', '.mov', '.avi', '.mkv', '.flv', '.wmv', '.webm'}
 
     # Iterate through all files in the directory
