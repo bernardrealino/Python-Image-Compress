@@ -10,7 +10,7 @@ def select_folder(page, callback):
                             
                 ft.Container(
                     content=ft.Text(get_folder_size(file_browser_textarea.value), style=ft.TextStyle(size=18)),
-                    bgcolor="green",        # Background color
+                    bgcolor=ft.colors.GREEN_900,        # Background color
                     padding=10,            # Optional: Add padding around the text
                     border_radius=10,      # Rounded corners (10px radius)
                 )
@@ -26,9 +26,8 @@ def select_folder(page, callback):
         [   
             file_browser_textarea,
             file_browser_button
-
-
         ]
     )
+    
 
     return folder_browser
