@@ -76,7 +76,7 @@ def compress_image(imagefiles, quality):
 def organize_by_creation_date_and_type(directory):
     # Ensure the directory exists
     if not os.path.exists(directory):
-        print(f"Directory {directory} does not exist.")
+        st.error(f"Directory {directory} does not exist.")
         return
     
     # Define photo and video file extensions, including RAW formats
@@ -96,7 +96,7 @@ def organize_by_creation_date_and_type(directory):
         creation_time = os.path.getctime(file_path)
         creation_date = datetime.fromtimestamp(creation_time).strftime('%Y_%m_%d')
 
-        # Determine the file type
+        # Determine the file type (convert to lowercase for consistent checking)
         file_ext = os.path.splitext(filename)[1].lower()
 
         if file_ext in photo_extensions:
