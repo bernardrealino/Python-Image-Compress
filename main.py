@@ -57,22 +57,23 @@ def compress_image(imagefiles, progress_bar, log, original_folder_size, compress
             storage_saved += original_file_size - compressed_file_size  # Calculate storage saved
 
             file_name = os.path.basename(image_path)
-            log_message = f"\tFrom: {original_file_size:.2f} MB\n"
-            log_message += f"To: {compressed_file_size:.2f} MB\n"
+            log_message = f"From: {original_file_size:.2f} MB\t"
+            log_message += f"To: {compressed_file_size:.2f} MB\t"
             log_message += f"{file_name}\n"
         except IOError:
             file_name = os.path.basename(image_path)
             log_message = f"Error processing: {file_name}\n"
         finally:
             count += 1
-            progress_bar.value = (count / file_count) * 100
+            progress_bar.value = (count / file_count)
             progress_bar.update()
             file_count_label.value = f"File {count}/{file_count}"  # Update current file number
             file_count_label.update()
             log.value += log_message
             log.update()
 
-    log.value += "Image compression completed.\n"
+    log.value += "\nImage compression completed."
+    log.value += f"\nStorage Saved: {storage_saved:.2f} MB"
     log.update()
 
     # Calculate compressed folder size in Megabytes
@@ -113,12 +114,11 @@ def compress_images(e):
         log.update()
         return
 
-    quality_value = quality_slider.value  # Get the quality from the slider
-    quality_slider.update()
+    quality_value = int(quality_slider.value)  # Get the quality from the slider
 
     compressed_folder_size.value = "0.00 MB"
     progress_bar.value = 0
-    log.value = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    log.value = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
     storage_saved_label.value = "Storage Saved: -"
     file_count_label.value = "File 0/0"  # Initialize file count label
     compress_image(image_files, progress_bar, log, original_size, compressed_folder_size, storage_saved_label, file_count_label, quality_value)
@@ -127,10 +127,13 @@ def main(page: ft.Page):
     global directory, progress_bar, log, original_size_label, compressed_folder_size, storage_saved_label, file_count_label, quality_slider
 
     page.title = "Image Compression App"
-    page.theme_mode = ft.ThemeMode.LIGHT
+    page.window.width = 700
+    page.theme_mode = ft.ThemeMode.DARK
 
+    copyright_text = ft.Text("bernardrealino.com")
     file_browser = ft.FilePicker(on_result=browse_directory)
-    directory = ft.TextField(value="D:/working/My Project/Python/Projects/Python-Image-Compress/Pictures/Original", label="Directory", expand=True)
+    directory = ft.TextField(value="D:/working/My Project/Python/Projects/Python-Image-Compress/Pictures/Original", label="Directory", multiline=True, expand=True)
+    # directory = ft.TextField(value="", label="Directory", multiline=True, expand=True)
     browse_button = ft.ElevatedButton(text="Browse", on_click=lambda _: file_browser.pick_files())
     
     quality_slider = ft.Slider(width = 530, min=0, max=100, value=quality, divisions=10, label="{value}%", on_change=lambda e: e.control.update())
@@ -141,7 +144,7 @@ def main(page: ft.Page):
     file_count_label = ft.Text(value="File 0/0")
     
     progress_bar = ft.ProgressBar(width=600, value=0)
-    log = ft.TextField(value="", multiline=True, expand=True, height=300)
+    log = ft.TextField(value="", label="Log", multiline=True)
     storage_saved_label = ft.Text(value="Storage Saved: -")
 
     page.controls.append(file_browser)
@@ -151,10 +154,10 @@ def main(page: ft.Page):
             ft.Row([directory, browse_button]),
             ft.Row([ft.Text("Compression Quality:"), quality_slider]),
             ft.Row([compress_button, ft.Text("Original Folder Size (MB):"), original_size_label, ft.Text("Compressed Folder Size:"), compressed_folder_size]),
-            ft.Row([file_count_label, progress_bar]),
-            ft.Text("Log:"),
-            storage_saved_label,
+            ft.Row([progress_bar, file_count_label]),
+            # storage_saved_label,
             log,
+            copyright_text,
         ])
     )
 
