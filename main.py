@@ -166,6 +166,10 @@ def organize_by_creation_date_and_type(e):
         # Move the file into the new folder
         shutil.move(file_path, os.path.join(new_folder_path, filename))
 
+        log.value += f"Moved to {creation_date}/{subfolder} - {filename} \n"
+        log.update()
+
+
 def main(page: ft.Page):
     global directory, progress_bar, log, original_size_label, compressed_folder_size, storage_saved_label, file_count_label, quality_slider
 
