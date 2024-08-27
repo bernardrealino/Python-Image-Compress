@@ -1,3 +1,4 @@
+import shutil
 import piexif
 import os
 from PIL import Image
@@ -123,11 +124,53 @@ def compress_images(e):
     file_count_label.value = "File 0/0"  # Initialize file count label
     compress_image(image_files, progress_bar, log, original_size, compressed_folder_size, storage_saved_label, file_count_label, quality_value)
 
+def organize_by_creation_date_and_type(e):
+    # Ensure the folder_path exists
+    folder_path = directory.value
+    if not os.path.exists(folder_path):
+        print(f"Directory {folder_path} does not exist.")
+        return
+    
+    # Define photo and video file extensions, including RAW formats
+    photo_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff',
+                        '.cr2', '.cr3', '.nef', '.arw', '.dng', '.orf', '.sr2', '.raf', '.rw2', '.heic'}
+    video_extensions = {'.mp4', '.mov', '.avi', '.mkv', '.flv', '.wmv', '.webm'}
+
+    # Iterate through all files in the folder_path
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+
+        # Skip directories
+        if os.path.isdir(file_path):
+            continue
+        
+        # Get the creation time and format it as YYYY-MM-DD
+        creation_time = os.path.getctime(file_path)
+        creation_date = datetime.fromtimestamp(creation_time).strftime('%Y_%m_%d')
+
+        # Determine the file type
+        file_ext = os.path.splitext(filename)[1].lower()
+
+        if file_ext in photo_extensions:
+            subfolder = 'Photos'
+        elif file_ext in video_extensions:
+            subfolder = 'Videos'
+        else:
+            continue  # Skip files that are neither photos nor videos
+
+        # Create a new folder with the creation date as the name if it doesn't exist
+        new_folder_path = os.path.join(folder_path, creation_date, subfolder)
+        if not os.path.exists(new_folder_path):
+            os.makedirs(new_folder_path)
+        
+        # Move the file into the new folder
+        shutil.move(file_path, os.path.join(new_folder_path, filename))
+
 def main(page: ft.Page):
     global directory, progress_bar, log, original_size_label, compressed_folder_size, storage_saved_label, file_count_label, quality_slider
 
     page.title = "Image Compression App"
-    page.window.width = 700
+    page.window.width = 750
     page.theme_mode = ft.ThemeMode.DARK
 
     copyright_text = ft.Text("bernardrealino.com")
@@ -138,6 +181,7 @@ def main(page: ft.Page):
     
     quality_slider = ft.Slider(width = 530, min=0, max=100, value=quality, divisions=10, label="{value}%", on_change=lambda e: e.control.update())
     compress_button = ft.ElevatedButton(text="Compress Images", on_click=compress_images)
+    organize_button = ft.ElevatedButton(text="Organize", on_click=organize_by_creation_date_and_type)
     
     original_size_label = ft.Text(value="0.00 MB")
     compressed_folder_size = ft.Text(value="0.00 MB")
@@ -153,7 +197,7 @@ def main(page: ft.Page):
         ft.Column([
             ft.Row([directory, browse_button]),
             ft.Row([ft.Text("Compression Quality:"), quality_slider]),
-            ft.Row([compress_button, ft.Text("Original Folder Size (MB):"), original_size_label, ft.Text("Compressed Folder Size:"), compressed_folder_size]),
+            ft.Row([compress_button, organize_button, ft.Text("Original Folder Size (MB):"), original_size_label, ft.Text("Compressed Folder Size:"), compressed_folder_size]),
             ft.Row([progress_bar, file_count_label]),
             # storage_saved_label,
             log,
