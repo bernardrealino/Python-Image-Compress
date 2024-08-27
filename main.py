@@ -85,8 +85,9 @@ def compress_image(imagefiles, progress_bar, log, original_folder_size, compress
     storage_saved_label.update()
 
 def browse_directory(e):
-    folder_path = e.control.value
+    folder_path = e.files[0].path.rsplit("\\", 1)[0] + "\\"
     directory.value = folder_path
+    directory.update()
     original_size = get_folder_size(folder_path)
     original_size_label.value = f"{original_size:.2f} MB"
 
@@ -128,10 +129,11 @@ def main(page: ft.Page):
     page.title = "Image Compression App"
     page.theme_mode = ft.ThemeMode.LIGHT
 
-    directory = ft.TextField(value="D:\working\My Project\Python\Projects\Python-Image-Compress\Pictures\Original", label="Select a directory", on_submit=browse_directory, expand=True)
-    browse_button = ft.ElevatedButton(text="Browse", on_click=browse_directory)
+    file_browser = ft.FilePicker(on_result=browse_directory)
+    directory = ft.TextField(value="D:/working/My Project/Python/Projects/Python-Image-Compress/Pictures/Original", label="Directory", expand=True)
+    browse_button = ft.ElevatedButton(text="Browse", on_click=lambda _: file_browser.pick_files())
     
-    quality_slider = ft.Slider(min=0, max=100, value=quality, divisions=10, label="{value}%", on_change=lambda e: e.control.update())
+    quality_slider = ft.Slider(width = 530, min=0, max=100, value=quality, divisions=10, label="{value}%", on_change=lambda e: e.control.update())
     compress_button = ft.ElevatedButton(text="Compress Images", on_click=compress_images)
     
     original_size_label = ft.Text(value="0.00 MB")
@@ -142,6 +144,8 @@ def main(page: ft.Page):
     log = ft.TextField(value="", multiline=True, expand=True, height=300)
     storage_saved_label = ft.Text(value="Storage Saved: -")
 
+    page.controls.append(file_browser)
+    page.scroll = True
     page.add(
         ft.Column([
             ft.Row([directory, browse_button]),
