@@ -145,9 +145,9 @@ def organize_by_creation_date_and_type(e):
             continue
         
         # Get the creation time and format it as YYYY-MM-DD
-        creation_time = os.path.getctime(file_path)
+        creation_time = os.path.getmtime(file_path)
         creation_date = datetime.fromtimestamp(creation_time).strftime('%Y_%m_%d')
-
+        print(creation_date)
         # Determine the file type
         file_ext = os.path.splitext(filename)[1].lower()
 
@@ -169,17 +169,22 @@ def organize_by_creation_date_and_type(e):
         log.value += f"Moved to {creation_date}/{subfolder} - {filename} \n"
         log.update()
 
+def clear_log_button(e):
+    log.value=""
+    log.update()
+
 
 def main(page: ft.Page):
     global directory, progress_bar, log, original_size_label, compressed_folder_size, storage_saved_label, file_count_label, quality_slider
 
     page.title = "Image Compression App"
-    page.window.width = 750
+    page.window_width = 750
     page.theme_mode = ft.ThemeMode.DARK
 
     copyright_text = ft.Text("bernardrealino.com")
     file_browser = ft.FilePicker(on_result=browse_directory)
-    directory = ft.TextField(value="D:/working/My Project/Python/Projects/Python-Image-Compress/Pictures/Original", label="Directory", multiline=True, expand=True)
+    # directory = ft.TextField(value="D:/working/My Project/Python/Projects/Python-Image-Compress/Pictures/Original", label="Directory", multiline=True, expand=True)
+    directory = ft.TextField(value="/Volumes/Project Files/Media/Photos/_MOVE LATER/Camera", label="Directory", multiline=True, expand=True)
     # directory = ft.TextField(value="", label="Directory", multiline=True, expand=True)
     browse_button = ft.ElevatedButton(text="Browse", on_click=lambda _: file_browser.pick_files())
     
@@ -192,6 +197,7 @@ def main(page: ft.Page):
     file_count_label = ft.Text(value="File 0/0")
     
     progress_bar = ft.ProgressBar(width=600, value=0)
+    clear_log = ft.ElevatedButton("Clear Log", on_click=clear_log_button)
     log = ft.TextField(value="", label="Log", multiline=True)
     storage_saved_label = ft.Text(value="Storage Saved: -")
 
@@ -204,6 +210,7 @@ def main(page: ft.Page):
             ft.Row([compress_button, organize_button, ft.Text("Original Folder Size (MB):"), original_size_label, ft.Text("Compressed Folder Size:"), compressed_folder_size]),
             ft.Row([progress_bar, file_count_label]),
             # storage_saved_label,
+            clear_log,
             log,
             copyright_text,
         ])
