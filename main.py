@@ -34,14 +34,21 @@ def get_folder_size(path):
             total_size += os.path.getsize(file_path)
     return round(total_size / (1024 * 1024), 2)  # Convert to Megabytes
 
-def compress_image(imagefiles, progress_bar, log, original_folder_size, compressed_folder_size, storage_saved_label, file_count_label, quality):
+def compress_image(imagefiles, progress_bar, log, original_folder_size, compressed_folder_size, storage_saved_label, file_count_label, quality, create_new_folder):
     file_count = len(imagefiles)
     count = 0
-    storage_saved = 0  # Initialize storage saved
+    storage_saved = 0
+    new_folder_path = None
+
+    if create_new_folder:
+        new_folder_path = os.path.join(directory.value, "Compressed")
+        if not os.path.exists(new_folder_path):
+            os.makedirs(new_folder_path)
+
     for image_path in imagefiles:
-        log_message = ""  # Initialize log_message
+        log_message = ""
         try:
-            original_file_size = os.path.getsize(image_path) / (1024 * 1024)  # Convert to Megabytes
+            original_file_size = os.path.getsize(image_path) / (1024 * 1024)  # MB
             im = Image.open(image_path)
             try:
                 exif_dict = modify_exif(piexif.load(im.info["exif"]))
@@ -49,18 +56,29 @@ def compress_image(imagefiles, progress_bar, log, original_folder_size, compress
             except KeyError:
                 exif_bytes = None
 
-            if exif_bytes is None:
-                im.save(image_path, "jpeg", quality=quality)
+            # Determine save path
+            if create_new_folder:
+                # Create a new folder at the same level as the original folder
+                original_parent = os.path.dirname(image_path)
+                new_folder_name = os.path.basename(original_parent) + "_Compressed"
+                new_folder_path = os.path.join(original_parent, "..", new_folder_name)
+                new_folder_path = os.path.abspath(new_folder_path)  # Normalize the path
+                if not os.path.exists(new_folder_path):
+                    os.makedirs(new_folder_path)
+                save_path = os.path.join(new_folder_path, os.path.basename(image_path))
             else:
-                im.save(image_path, "jpeg", exif=exif_bytes, quality=quality)
-            
-            compressed_file_size = os.path.getsize(image_path) / (1024 * 1024)  # Convert to Megabytes
-            storage_saved += original_file_size - compressed_file_size  # Calculate storage saved
+                save_path = image_path
+
+            if exif_bytes is None:
+                im.save(save_path, "jpeg", quality=quality)
+            else:
+                im.save(save_path, "jpeg", exif=exif_bytes, quality=quality)
+
+            compressed_file_size = os.path.getsize(save_path) / (1024 * 1024)  # MB
+            storage_saved += original_file_size - compressed_file_size
 
             file_name = os.path.basename(image_path)
-            log_message = f"From: {original_file_size:.2f} MB\t"
-            log_message += f"To: {compressed_file_size:.2f} MB\t"
-            log_message += f"{file_name}\n"
+            log_message = f"From: {original_file_size:.2f} MB\tTo: {compressed_file_size:.2f} MB\t{file_name}\n"
         except IOError:
             file_name = os.path.basename(image_path)
             log_message = f"Error processing: {file_name}\n"
@@ -68,7 +86,7 @@ def compress_image(imagefiles, progress_bar, log, original_folder_size, compress
             count += 1
             progress_bar.value = (count / file_count)
             progress_bar.update()
-            file_count_label.value = f"File {count}/{file_count}"  # Update current file number
+            file_count_label.value = f"File {count}/{file_count}"
             file_count_label.update()
             log.value += log_message
             log.update()
@@ -77,15 +95,17 @@ def compress_image(imagefiles, progress_bar, log, original_folder_size, compress
     log.value += f"\nStorage Saved: {storage_saved:.2f} MB"
     log.update()
 
-    # Calculate compressed folder size in Megabytes
-    compressed_size = get_folder_size(directory.value)
-    compressed_folder_size.value = f"{compressed_size:.2f} MB"  # Shorter compressed folder size
+    # Calculate compressed folder size
+    if create_new_folder:
+        compressed_size = get_folder_size(new_folder_path)
+    else:
+        compressed_size = get_folder_size(directory.value)
+
+    compressed_folder_size.value = f"{compressed_size:.2f} MB"
     compressed_folder_size.update()
 
-    # Calculate and display storage saved
     storage_saved_label.value = f"Storage Saved: {storage_saved:.2f} MB"
     storage_saved_label.update()
-
 def browse_directory(e):
     folder_path = e.files[0].path.rsplit("\\", 1)[0] + "\\"
     directory.value = folder_path
@@ -115,14 +135,15 @@ def compress_images(e):
         log.update()
         return
 
-    quality_value = int(quality_slider.value)  # Get the quality from the slider
+    quality_value = int(quality_slider.value)
+    create_new_folder = create_new_folder_checkbox.value
 
     compressed_folder_size.value = "0.00 MB"
     progress_bar.value = 0
     log.value = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
     storage_saved_label.value = "Storage Saved: -"
-    file_count_label.value = "File 0/0"  # Initialize file count label
-    compress_image(image_files, progress_bar, log, original_size, compressed_folder_size, storage_saved_label, file_count_label, quality_value)
+    file_count_label.value = "File 0/0"
+    compress_image(image_files, progress_bar, log, original_size, compressed_folder_size, storage_saved_label, file_count_label, quality_value, create_new_folder)
 
 def organize_by_creation_date_and_type(e):
     # Ensure the folder_path exists
@@ -175,7 +196,7 @@ def clear_log_button(e):
 
 
 def main(page: ft.Page):
-    global directory, progress_bar, log, original_size_label, compressed_folder_size, storage_saved_label, file_count_label, quality_slider
+    global directory, progress_bar, log, original_size_label, compressed_folder_size, storage_saved_label, file_count_label, quality_slider, create_new_folder_checkbox
 
     page.title = "Image Compression App"
     page.window_width = 750
@@ -184,21 +205,26 @@ def main(page: ft.Page):
     copyright_text = ft.Text("bernardrealino.com")
     file_browser = ft.FilePicker(on_result=browse_directory)
     # directory = ft.TextField(value="D:/working/My Project/Python/Projects/Python-Image-Compress/Pictures/Original", label="Directory", multiline=True, expand=True)
-    directory = ft.TextField(value="/Volumes/Project Files/Media/Photos/_MOVE LATER/Camera", label="Directory", multiline=True, expand=True)
+    directory = ft.TextField(value="", label="Directory", multiline=True, expand=True)
     # directory = ft.TextField(value="", label="Directory", multiline=True, expand=True)
     browse_button = ft.ElevatedButton(text="Browse", on_click=lambda _: file_browser.pick_files())
     
     quality_slider = ft.Slider(width = 530, min=0, max=100, value=quality, divisions=10, label="{value}%", on_change=lambda e: e.control.update())
     compress_button = ft.ElevatedButton(text="Compress Images", on_click=compress_images)
     organize_button = ft.ElevatedButton(text="Organize", on_click=organize_by_creation_date_and_type)
+    create_new_folder_checkbox = ft.Checkbox(label="Save in a new folder", value=True)
     
-    original_size_label = ft.Text(value="0.00 MB")
-    compressed_folder_size = ft.Text(value="0.00 MB")
+    original_size_label = ft.Text(value="0.00 MB", size=50)
+    compressed_folder_size = ft.Text(value="0.00 MB", size=50)
     file_count_label = ft.Text(value="File 0/0")
     
+    original_size_card = ft.Card(ft.Column([ft.Text("Original Folder Size (MB):"), original_size_label], horizontal_alignment=ft.CrossAxisAlignment.CENTER,))
+    compressed_size_card = ft.Card(ft.Column([ft.Text("Compressed Folder Size:"), compressed_folder_size], horizontal_alignment=ft.CrossAxisAlignment.CENTER,))
+
+
     progress_bar = ft.ProgressBar(width=600, value=0)
     clear_log = ft.ElevatedButton("Clear Log", on_click=clear_log_button)
-    log = ft.TextField(value="", label="Log", multiline=True)
+    log = ft.TextField(value="", label="Log", multiline=True, max_lines=10)
     storage_saved_label = ft.Text(value="Storage Saved: -")
 
     page.controls.append(file_browser)
@@ -207,9 +233,10 @@ def main(page: ft.Page):
         ft.Column([
             ft.Row([directory, browse_button]),
             ft.Row([ft.Text("Compression Quality:"), quality_slider]),
-            ft.Row([compress_button, organize_button, ft.Text("Original Folder Size (MB):"), original_size_label, ft.Text("Compressed Folder Size:"), compressed_folder_size]),
+            
+            ft.Row([compress_button, organize_button, create_new_folder_checkbox]),
+            ft.Row([original_size_card, compressed_size_card], alignment=ft.MainAxisAlignment.SPACE_AROUND),
             ft.Row([progress_bar, file_count_label]),
-            # storage_saved_label,
             clear_log,
             log,
             copyright_text,
